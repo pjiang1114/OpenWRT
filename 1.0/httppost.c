@@ -25,7 +25,7 @@ int read_port(void)
 */
 int main(void)
 {  
-  char *portname = "/dev/ttyS1";
+  char *portname = "/dev/ttys000";
   // open port with a file descriptor
   int fd = open(portname, O_RDWR | O_NOCTTY | O_SYNC); 
   if (fd < 0)
@@ -38,11 +38,11 @@ int main(void)
                                           // 8in1(no parity)
   set_blocking (fd, 0);                   // set no blocking
 
-  write(fd,"hello!\n",7);                        // send 2 character
+  write(fd,"10",2);                        // send 2 character
   
   usleep ((10+25)*100);         // sleep enough to transmit the 2 char plus
                                // receive 25: approx 100 uS per char transmit
-  char buffer[100];
+  char buffer[2];
   int n = read(fd, buffer,sizeof buffer);
   if (n<0)
   {  
@@ -50,20 +50,23 @@ int main(void)
       return(2); 
   }
   printf("read from port ... done!\n");
-  printf("In buffer: %s \n", buffer);
+  printf("In buffer: %c%c \n", buffer[0], buffer[1]);
   //create update data
   char *key = "key=TYAY6R6VPZWQBQNE";
   char *field = "field1="; 
  // int To_int_data = buffer;
-  char *To_string_data = buffer; 
+  char *To_string_data = malloc(sizeof buffer); 
+        To_string_data = buffer;
   char *postfield; 
-  if((postfield = malloc(strlen(key)+strlen(field)+4)) != NULL)
+  if((postfield = malloc(strlen(key)+strlen(field)+3)) != NULL)
   {
     postfield[0]='\0'; // ensures the memory is an empty string
     strcat(postfield, key);
     strcat(postfield, "&");
     strcat(postfield, field);
-    strcat(postfield,buffer);
+    strcat(postfield, To_string_data);
+    //To_string_data = &buffer[1];
+    //strcat(postfield, To_string_data);
   }
   printf("postfiled= %s\n", postfield);
 
